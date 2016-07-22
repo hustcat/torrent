@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -56,6 +57,7 @@ func setAnnounceParams(_url *url.URL, ar *AnnounceRequest) {
 	}
 	// http://stackoverflow.com/questions/17418004/why-does-tracker-server-not-understand-my-request-bittorrent-protocol
 	q.Set("compact", "1")
+	q.Set("numwant", strconv.FormatInt(int64(ar.NumWant), 10))
 	// According to https://wiki.vuze.com/w/Message_Stream_Encryption.
 	q.Set("supportcrypto", "1")
 
@@ -67,6 +69,8 @@ func announceHTTP(ar *AnnounceRequest, _url *url.URL, host string) (ret Announce
 	setAnnounceParams(_url, ar)
 	req, err := http.NewRequest("GET", _url.String(), nil)
 	req.Host = host
+	log.Printf("%s %s", req.Method, _url.String())
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return
@@ -92,5 +96,6 @@ func announceHTTP(ar *AnnounceRequest, _url *url.URL, host string) (ret Announce
 	ret.Leechers = trackerResponse.Incomplete
 	ret.Seeders = trackerResponse.Complete
 	ret.Peers, err = trackerResponse.UnmarshalPeers()
+	log.Printf("AnnounceResponse: %#v", ret)
 	return
 }

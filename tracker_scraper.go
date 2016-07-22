@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/anacrolix/missinggo"
+	"log"
+	"time"
 
 	"github.com/anacrolix/torrent/tracker"
 )
@@ -85,6 +85,7 @@ func (me *trackerScraper) announce() (ret trackerAnnounceResult) {
 	}
 	me.t.cl.mu.Lock()
 	req := me.t.announceRequest()
+	log.Printf("AnnounceRequest %#v", req)
 	me.t.cl.mu.Unlock()
 	res, err := tracker.AnnounceHost(urlToUse, &req, host)
 	if err != nil {

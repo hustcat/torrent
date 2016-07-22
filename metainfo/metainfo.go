@@ -213,6 +213,10 @@ func (mi *MetaInfo) Magnet() (m Magnet) {
 			m.Trackers = append(m.Trackers, tracker)
 		}
 	}
+
+	if m.Trackers == nil && mi.Announce != "" {
+		m.Trackers = []string{mi.Announce}
+	}
 	m.DisplayName = mi.Info.Name
 	m.InfoHash = mi.Info.Hash()
 	return

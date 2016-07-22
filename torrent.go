@@ -1200,7 +1200,7 @@ func (t *Torrent) startMissingTrackerScrapers() {
 func (t *Torrent) announceRequest() tracker.AnnounceRequest {
 	return tracker.AnnounceRequest{
 		Event:    tracker.None,
-		NumWant:  -1,
+		NumWant:  200,
 		Port:     uint16(t.cl.incomingPeerPort()),
 		PeerId:   t.cl.peerID,
 		InfoHash: t.infoHash,
