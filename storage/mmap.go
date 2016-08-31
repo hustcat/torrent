@@ -27,7 +27,7 @@ func (s *mmapStorage) OpenTorrent(info *metainfo.InfoEx) (t Torrent, err error) 
 	span, err := mMapTorrent(&info.Info, s.baseDir)
 	t = &mmapTorrentStorage{
 		span: span,
-		pc:   pieceCompletionForDir(s.baseDir),
+		pc:   pieceCompletionForDir(s.baseDir, PieceCompletionMmap),
 	}
 	return
 }

@@ -20,6 +20,8 @@ import (
 	"github.com/anacrolix/torrent/storage"
 )
 
+const maxNameLen = 10
+
 func resolvedPeerAddrs(ss []string) (ret []torrent.Peer, err error) {
 	for _, s := range ss {
 		var addr *net.TCPAddr
@@ -53,7 +55,12 @@ func torrentBar(t *torrent.Torrent) {
 		}
 	})
 	bar.PrependFunc(func(*uiprogress.Bar) string {
-		return t.Name()
+		name := t.Name()
+		if len(name) > maxNameLen {
+			return name[0:maxNameLen]
+		} else {
+			return t.Name()
+		}
 	})
 	go func() {
 		<-t.GotInfo()
@@ -124,6 +131,11 @@ func main() {
 	if flags.Addr != nil {
 		clientConfig.ListenAddr = flags.Addr.String()
 	}
+
+	clientConfig.Debug = true
+	clientConfig.DisableEncryption = true
+	clientConfig.DisableUTP = true
+	//clientConfig.NoDHT = true
 
 	client, err := torrent.NewClient(&clientConfig)
 	if err != nil {

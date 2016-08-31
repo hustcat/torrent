@@ -9,6 +9,7 @@ type InfoEx struct {
 	// Set when unmarshalling, and used when marshalling. Call .UpdateBytes to
 	// set it by bencoding Info.
 	Bytes []byte
+	hash  Hash
 }
 
 var (
@@ -27,11 +28,14 @@ func (ie *InfoEx) UpdateBytes() {
 
 // Returns the SHA1 hash of .Bytes.
 func (ie *InfoEx) Hash() Hash {
-	return HashBytes(ie.Bytes)
+	//return HashBytes(ie.Bytes)
+	return ie.hash
 }
 
 func (ie *InfoEx) UnmarshalBencode(data []byte) error {
 	ie.Bytes = append([]byte(nil), data...)
+	h := HashBytes(ie.Bytes)
+	copy(ie.hash[:], h[:])
 	return bencode.Unmarshal(data, &ie.Info)
 }
 

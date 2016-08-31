@@ -257,10 +257,12 @@ func (t *Torrent) setInfoBytes(b []byte) error {
 			conn.Close()
 		}
 	}
+	log.Println("begin updatePieceCompletion")
 	for i := range t.pieces {
 		t.updatePieceCompletion(i)
 		t.pieces[i].QueuedForHash = true
 	}
+	log.Println("end updatePieceCompletion")
 	go func() {
 		for i := range t.pieces {
 			t.verifyPiece(i)

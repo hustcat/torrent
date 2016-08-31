@@ -27,7 +27,7 @@ func (fs *fileStorage) OpenTorrent(info *metainfo.InfoEx) (Torrent, error) {
 	return &fileTorrentStorage{
 		fs,
 		&info.Info,
-		pieceCompletionForDir(fs.baseDir),
+		pieceCompletionForDir(fs.baseDir, PieceCompletionSqlite),
 	}, nil
 }
 
