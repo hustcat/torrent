@@ -131,6 +131,9 @@ func main() {
 	if flags.Addr != nil {
 		clientConfig.ListenAddr = flags.Addr.String()
 	}
+	if flags.Seed {
+		clientConfig.Seed = true
+	}
 
 	clientConfig.Debug = true
 	clientConfig.DisableEncryption = true
