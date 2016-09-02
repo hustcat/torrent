@@ -20,18 +20,26 @@ var (
 func main() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
 	var args struct {
-		AnnounceList []string `name:"a" help:"extra announce-list tier entry"`
+		AnnounceList []string `name:"al" help:"extra announce-list tier entry"`
+		Announce     string   `name:"a" help:"extra announce entry"`
 		tagflag.StartPos
 		Root string
 	}
 	tagflag.Parse(&args, tagflag.Description("Creates a torrent metainfo for the file system rooted at ROOT, and outputs it to stdout."))
+
+	/*
+		mi := metainfo.MetaInfo{
+			AnnounceList: builtinAnnounceList,
+		}
+		for _, a := range args.AnnounceList {
+			mi.AnnounceList = append(mi.AnnounceList, []string{a})
+		}
+	*/
 	mi := metainfo.MetaInfo{
-		AnnounceList: builtinAnnounceList,
-	}
-	for _, a := range args.AnnounceList {
-		mi.AnnounceList = append(mi.AnnounceList, []string{a})
+		Announce: args.Announce,
 	}
 	mi.SetDefaults()
+	mi.Info.PieceLength = 1024 * 1024
 	err := mi.Info.BuildFromFilePath(args.Root)
 	if err != nil {
 		log.Fatal(err)

@@ -113,10 +113,12 @@ func addTorrents(client *torrent.Client) {
 }
 
 var flags struct {
-	Mmap     bool           `help:"memory-map torrent data"`
-	TestPeer []*net.TCPAddr `help:"addresses of some starting peers"`
-	Seed     bool           `help:"seed after download is complete"`
-	Addr     *net.TCPAddr   `help:"network listen addr"`
+	Mmap       bool           `help:"memory-map torrent data"`
+	TestPeer   []*net.TCPAddr `help:"addresses of some starting peers"`
+	Seed       bool           `help:"seed after download is complete"`
+	DisableTCP bool           `help:"Disable TCP"`
+	DisableUTP bool           `help:"Disable UTP"`
+	Addr       *net.TCPAddr   `help:"network listen addr"`
 	tagflag.StartPos
 	Torrent []string `arity:"+" help:"torrent file path or magnet uri"`
 }
@@ -134,10 +136,15 @@ func main() {
 	if flags.Seed {
 		clientConfig.Seed = true
 	}
+	if flags.DisableUTP {
+		clientConfig.DisableUTP = true
+	}
+	if flags.DisableTCP {
+		clientConfig.DisableTCP = true
+	}
 
 	clientConfig.Debug = true
 	clientConfig.DisableEncryption = true
-	clientConfig.DisableUTP = true
 	//clientConfig.NoDHT = true
 
 	client, err := torrent.NewClient(&clientConfig)
