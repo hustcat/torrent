@@ -417,6 +417,10 @@ func (cn *connection) writer(keepAliveTimeout time.Duration) {
 			if err != nil {
 				panic(err)
 			}
+			// return to pool
+			if msg.Type == pp.Piece {
+				cn.t.pieceBufferPool.Put(msg.Piece)
+			}
 			connectionWriterWrite.Add(1)
 			n, err := buf.Write(b)
 			if err != nil {

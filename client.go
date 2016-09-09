@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	rtsync "sync"
 	"time"
 
 	"github.com/anacrolix/missinggo"
@@ -1114,7 +1115,8 @@ another:
 
 func (cl *Client) sendChunk(t *Torrent, c *connection, r request) error {
 	// Count the chunk being sent, even if it isn't.
-	b := make([]byte, r.Length)
+	// b := make([]byte, r.Length)
+	b := t.pieceBufferPool.Get().([]byte)
 	p := t.info.Piece(int(r.Index))
 	n, err := t.readAt(b, p.Offset()+int64(r.Begin))
 	if n != len(b) {
@@ -1140,6 +1142,7 @@ func (cl *Client) sendChunk(t *Torrent, c *connection, r request) error {
 func (cl *Client) connectionLoop(t *Torrent, c *connection) error {
 	decoder := pp.Decoder{
 		R:         bufio.NewReader(c.rw),
+		Pool:      t.pieceBufferPool,
 		MaxLength: 256 * 1024,
 	}
 	for {
@@ -1214,6 +1217,9 @@ func (cl *Client) connectionLoop(t *Torrent, c *connection) error {
 			err = c.peerSentHaveNone()
 		case pp.Piece:
 			cl.downloadedChunk(t, c, &msg)
+			if len(msg.Piece) == int(t.chunkSize) {
+				t.pieceBufferPool.Put(msg.Piece)
+			}
 		case pp.Extended:
 			switch msg.ExtendedID {
 			case pp.HandshakeExtendedID:
@@ -1456,6 +1462,7 @@ func TorrentSpecFromMetaInfo(mi *metainfo.MetaInfo) (spec *TorrentSpec) {
 		Info:        &mi.Info,
 		DisplayName: mi.Info.Name,
 		InfoHash:    mi.Info.Hash(),
+		ChunkSize:   0x10000, //64KB
 	}
 	if spec.Trackers == nil && mi.Announce != "" {
 		spec.Trackers = [][]string{{mi.Announce}}
@@ -1501,6 +1508,11 @@ func (cl *Client) AddTorrentSpec(spec *TorrentSpec) (t *Torrent, new bool, err e
 	defer cl.mu.Unlock()
 	if spec.ChunkSize != 0 {
 		t.chunkSize = pp.Integer(spec.ChunkSize)
+	}
+	t.pieceBufferPool = &rtsync.Pool{
+		New: func() interface{} {
+			return make([]byte, t.chunkSize)
+		},
 	}
 	t.addTrackers(spec.Trackers)
 	t.maybeNewConns()
