@@ -36,6 +36,8 @@ const (
 	peerSourcePEX      = 'X'
 )
 
+const MaxMessageLength = 256 * 1024
+
 // Maintains the state of a connection with a peer.
 type connection struct {
 	t         *Torrent
@@ -706,9 +708,11 @@ func (c *connection) mainReadLoop() error {
 
 	decoder := pp.Decoder{
 		R:         bufio.NewReader(c.rw),
-		MaxLength: 256 * 1024,
+		MaxLength: MaxMessageLength,
 		Pool:      pool,
+		RecvBuf:   make([]byte, MaxMessageLength),
 	}
+
 	for {
 		cl.mu.Unlock()
 		var msg pp.Message
@@ -781,9 +785,7 @@ func (c *connection) mainReadLoop() error {
 			err = c.peerSentHaveNone()
 		case pp.Piece:
 			cl.downloadedChunk(t, c, &msg)
-			if len(msg.Piece) == int(t.chunkSize) {
-				pool.Put(msg.Piece)
-			}
+			pool.Put(msg.Piece)
 		case pp.Extended:
 			switch msg.ExtendedID {
 			case pp.HandshakeExtendedID:
